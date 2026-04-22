@@ -1,5 +1,5 @@
 import type { Server, Socket } from "socket.io";
-import { generateParagraph } from "../utils/generateParagraph.js";
+import { generateParagraph } from "../utils/generateParagraph";
 import { rooms } from "../setupListener.js";
 
 export class Game {

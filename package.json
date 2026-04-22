@@ -9,6 +9,10 @@
     "check-types": "turbo run check-types"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.4",
+    "@types/node": "^25.6.0",
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.10",
     "prettier": "^3.7.4",
     "turbo": "^2.9.6",
     "typescript": "5.9.2"
