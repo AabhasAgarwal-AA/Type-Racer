@@ -4,20 +4,27 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { redirect } from "next/navigation";
 
-export default function JoinGame({searchParams, params}:{
-    searchParams: {name ?: string}, 
-    params: {gameId: string}
+export default async function JoinGame({searchParams, params}:{
+    searchParams: Promise<{ name?: string | string[] }>;
+    params: Promise<{ gameId: string }>
 }){
+    const { gameId } = await params;
+    const resolvedSearchParams = await searchParams;
+    const name = Array.isArray(resolvedSearchParams.name)
+        ? resolvedSearchParams.name[0]
+        : resolvedSearchParams.name;
+
     async function appendName(formData: FormData){
         "use server";
         const name = formData.get("name") as string; 
         if(!name){
             return
         }
-        redirect(`/game/${params.gameId}?name=${name}`);
+        // redirect(`/game/${params.gameId}?name=${name}`);
+        redirect(`/game/${gameId}?name=${name}`);
     }
 
-    if(!searchParams.name){
+    if(!name){
         return (
             <main className="mx-auto max-w-5xl w-full mt-10 p-5">
                 <Card className="w-full flex flex-col p-10">
@@ -36,5 +43,5 @@ export default function JoinGame({searchParams, params}:{
         )
     }
 
-    return <Game gameId={""} name={""} />
+    return <Game gameId={gameId} name={name} />
 }
