@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { redirect } from "next/navigation";
 
-export default async function JoinGame({searchParams, params}:{
+export default async function GameJoin({searchParams, params}:{
     searchParams: Promise<{ name?: string | string[] }>;
     params: Promise<{ gameId: string }>
 }){

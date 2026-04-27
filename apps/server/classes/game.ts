@@ -44,66 +44,68 @@ export class Game {
                 this.gameStatus = "finished";
                 this.io.to(this.gameId).emit("game-finished");
                 this.io.to(this.gameId).emit("players", this.players);
-            }, 6000);
+            }, 60000);
 
-            socket.on("player-typed", (typed: string) => {
-                if(this.gameStatus !== "in-progress"){
-                    return socket.emit("error", "Game has already started, please wait for it to end before joining!");
+        });
+
+        socket.on("player-typed", (typed: string) => {
+            if(this.gameStatus !== "in-progress"){
+                return socket.emit("error", "The game has not started yet!");
+            }
+
+            const splittedParagraph = this.paragraph.split(" ");
+            const splittedType = typed.split(" ");
+
+            let score = 0;
+
+            for (let i = 0; i < splittedType.length; i++){
+                if(splittedType[i] === splittedParagraph[i]){
+                    score++;
+                }else{
+                    break; 
                 }
-
-                const splittedParagraph = this.paragraph.split(" ");
-                const splittedType = typed.split(" ");
-
-                let score = 0;
-
-                for(let i = 0; i < splittedParagraph.length; i++){
-                    if(splittedType[i] === splittedParagraph[i]){
-                        score++;
-                    }else{
-                        break; 
-                    }
-                }
+            }
 
 
-                const player = this.players.find(player => player.id === socket.id);
-                if(player){
-                    player.score = score
-                }
+            const player = this.players.find(player => player.id === socket.id);
+            if(player){
+                player.score = score
+            }
 
-                this.io.to(this.gameId).emit("player-score", {id: socket.id, score});
-            });
+            this.io.to(this.gameId).emit("player-score", {id: socket.id, score});
+        });
 
-            socket.on("leave", () => {
-                if(socket.id === this.gameHost){
-                    this.players = this.players.filter((player) => player.id !== socket.id);
-                }
+        socket.on("leave", () => {
+            const isHost = socket.id === this.gameHost;
 
-                if(this.players.length === 0){
+            this.players = this.players.filter((player) => player.id !== socket.id);
+
+            if(isHost){
+                if(this.players.length !== 0){
                     this.gameHost = this.players[0]?.id as unknown as string;
                     this.io.to(this.gameId).emit("new-host", this.gameHost);
-                    this.io.to(this.gameId).emit("player-left", socket.id);
                 }else {
                     rooms.delete(this.gameId);
                 }
+            }
 
-                socket.leave(this.gameId);
+            socket.leave(this.gameId);
+            this.io.to(this.gameId).emit("player-left", socket.id);
+        });
+
+        socket.on("disconnect", () => {
+            if(socket.id == this.gameHost){
                 this.players = this.players.filter((player) => player.id !== socket.id);
-                this.io.to(this.gameId).emit("player-left", socket.id);
-            });
-
-            socket.on("disconnect", () => {
-                if(socket.id == this.gameHost){
-                    this.players = this.players.filter((player) => player.id !== socket.id);
-                }
+            
                 if(this.players.length !== 0){
                     this.gameHost = this.players[0]?.id as unknown as string;
                 } else {
                     rooms.delete(this.gameId); 
                 }
-                socket.leave(this.gameId);
-                this.players = this.players.filter((player) => player.id !== socket.id);
-            })            
-        });
+            }
+            socket.leave(this.gameId);
+            this.players = this.players.filter((player) => player.id !== socket.id);
+        })            
     }
 
     joinPlayer(id: string, name: string, socket: Socket){
@@ -116,7 +118,7 @@ export class Game {
             id, name, score: 0
         });
 
-        socket.emit("player", this.players);
+        socket.emit("players", this.players);
         socket.emit("new-host", this.gameHost);
 
         this.setupListeners(socket);

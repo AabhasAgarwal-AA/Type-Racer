@@ -8,7 +8,7 @@ import { Button } from "./ui/button";
 import LeaderboardCard from "./leaderboard-card";
 import { Textarea } from "./ui/textarea";
 
-export default function Game({gameId, name}: GameProps){
+export default function GamePlayer({gameId, name}: GameProps){
     const [ioInstance, setIoInstance] = useState<Socket>();
     const [players, setPlayers] = useState<Player[]>([]);
     const [gameStatus, setGameStatus] = useState<GameStatus>("not-started");
@@ -17,9 +17,7 @@ export default function Game({gameId, name}: GameProps){
     const [inputParagraph, setInputParagraph] = useState<string>("");
 
     useEffect(() => {
-        const socket = io(process.env.NEXT_PUBLIC_WEBSOCKET_URL as string, {
-            transports: ["websocket"]
-        }); 
+        const socket = io(process.env.NEXT_PUBLIC_WEBSOCKET_URL as string);
         setIoInstance(socket);
 
         socket.emit("join-game", gameId, name);
@@ -34,6 +32,13 @@ export default function Game({gameId, name}: GameProps){
         setupListeners();
         return () => removeListeners();
     }, [ioInstance]);
+
+    useEffect(() => {
+        if(!ioInstance || gameStatus !== "in-progress"){
+            return; 
+        }
+        ioInstance.emit("player-typed", inputParagraph);
+    }, [inputParagraph]);
 
     function setupListeners(){
         if(!ioInstance){
@@ -71,7 +76,7 @@ export default function Game({gameId, name}: GameProps){
             );
         });
 
-        ioInstance.on("game-started", () => {
+        ioInstance.on("game-started", (paragraph: string) => {
             setParagraph(paragraph);
             setGameStatus("in-progress");
         });
@@ -177,8 +182,8 @@ export default function Game({gameId, name}: GameProps){
                 {gameStatus === "finished" && (
                     <div className="flex flex-col items-center justify-center p-10">
                         <h1 className="text-2xl font-bold text-center">
-                            Game Finiished 
-                            {ioInstance?.id === host && "Restart the game fresh"}
+                            Game Finished 
+                            {ioInstance?.id === host && " Restart the game fresh"}
                         </h1>
 
                         {host === ioInstance?.id && (

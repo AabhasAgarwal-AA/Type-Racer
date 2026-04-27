@@ -12,19 +12,17 @@ export function generateParagraphUsingLoremIpsum(){
 
 export async function generateParagraph(){
     try{
-        const response = await fetch("http://metaphorpsum.com/paragraphs/11");
+        const response = await fetch("https://baconipsum.com/api/?type=all-meat&paras=5&format=text");
         if(!response.ok){
-            throw new Error();
+            throw new Error("Failed to fetch paragraph");
         }
         const data = await response.text();
-        const paragraph = data.split(`/n`).join(" ");
+        const paragraph = data.split("\n").join(" ");
         return paragraph; 
     } catch (error){
-        console.log(error);
+        console.log("Fallback triggered: " + error);
         const paragraph = generateParagraphUsingLoremIpsum();
         return paragraph;
 
-    }
-
-    
+    }    
 }
