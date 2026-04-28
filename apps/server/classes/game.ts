@@ -62,7 +62,8 @@ export class Game {
                 if(splittedType[i] === splittedParagraph[i]){
                     score++;
                 }else{
-                    break; 
+                    // break;
+                    continue; 
                 }
             }
 
